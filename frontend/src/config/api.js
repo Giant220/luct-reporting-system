@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 // For development - will be updated after deployment
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-
+const API_BASE_URL = 'https://luct-fict-backend-v2.vercel.app';
 console.log('API Base URL:', API_BASE_URL);
 
 export const api = axios.create({
