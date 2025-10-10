@@ -3,14 +3,18 @@ import jwt from 'jsonwebtoken'
 import ExcelJS from 'exceljs'
 
 export default async function handler(req, res) {
+  // Handle preflight OPTIONS request first
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    return res.status(200).end()
+  }
+
+  // Set CORS headers for all responses
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end()
-    return
-  }
 
   if (req.method === 'GET') {
     try {
@@ -110,10 +114,10 @@ export default async function handler(req, res) {
         })
       }
 
-      // Set response headers
+      // Set response headers for file download
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
       res.setHeader('Content-Disposition', `attachment; filename=luct-reports-${new Date().toISOString().split('T')[0]}.xlsx`)
-
+      
       // Send the file
       await workbook.xlsx.write(res)
       res.end()
@@ -122,7 +126,6 @@ export default async function handler(req, res) {
       res.status(500).json({ error: error.message })
     }
   } else {
-    res.setHeader('Allow', ['GET'])
     res.status(405).json({ error: `Method ${req.method} Not Allowed` })
   }
 }

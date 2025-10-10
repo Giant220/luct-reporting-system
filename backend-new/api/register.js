@@ -1,26 +1,37 @@
 import { supabase } from '../utils/supabaseClient.js'
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end()
-    return
+    res.status(200).end();
+    return;
   }
 
   if (req.method === 'POST') {
     try {
-      const { email, password, role, name, gender, faculty, course_program } = req.body
+      const { email, password, role, name, gender, faculty, course_program } = req.body;
 
       if (!email || !password || !role || !name) {
-        return res.status(400).json({ error: 'All fields are required' })
+        return res.status(400).json({ error: 'All fields are required' });
       }
 
       // Validate course program for students
       if (role === 'student' && !course_program) {
-        return res.status(400).json({ error: 'Course program is required for students' })
+        return res.status(400).json({ error: 'Course program is required for students' });
       }
 
       const { data: existing, error: checkError } = await supabase
@@ -31,7 +42,7 @@ export default async function handler(req, res) {
       if (checkError) throw checkError
 
       if (existing && existing.length > 0) {
-        return res.status(400).json({ error: 'User already exists' })
+        return res.status(400).json({ error: 'User already exists' });
       }
 
       const { data: user, error } = await supabase
@@ -44,7 +55,7 @@ export default async function handler(req, res) {
             name, 
             gender: gender || null,
             faculty: faculty || 'Faculty of ICT (FICT)',
-            course_program: course_program || null
+            course_program: role === 'student' ? course_program : null
           }
         ])
         .select()

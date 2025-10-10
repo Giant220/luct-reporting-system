@@ -2,13 +2,14 @@ import { supabase } from '../utils/supabaseClient.js'
 import jwt from 'jsonwebtoken'
 
 export default async function handler(req, res) {
+  // Set CORS headers for ALL responses first
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
+  // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
-    res.status(200).end()
-    return
+    return res.status(200).end()
   }
 
   if (req.method === 'GET') {
@@ -58,9 +59,7 @@ export default async function handler(req, res) {
       console.error('Get ratings error:', error)
       res.status(500).json({ error: error.message })
     }
-  }
-
-  if (req.method === 'POST') {
+  } else if (req.method === 'POST') {
     try {
       const token = req.headers.authorization?.split(' ')[1]
       if (!token) {
@@ -121,7 +120,6 @@ export default async function handler(req, res) {
       res.status(500).json({ error: error.message })
     }
   } else {
-    res.setHeader('Allow', ['GET', 'POST'])
     res.status(405).json({ error: `Method ${req.method} Not Allowed` })
   }
 }
